@@ -28,6 +28,7 @@ import org.thymeleaf.engine.AttributeName;
 import org.thymeleaf.exceptions.TemplateProcessingException;
 import org.thymeleaf.extras.springsecurity6.auth.AclAuthUtils;
 import org.thymeleaf.extras.springsecurity6.auth.AuthUtils;
+import org.thymeleaf.extras.springsecurity6.dialect.context.ApplicationContextResolver;
 import org.thymeleaf.model.IProcessableElementTag;
 import org.thymeleaf.standard.expression.IStandardExpression;
 import org.thymeleaf.standard.expression.IStandardExpressionParser;
@@ -53,10 +54,13 @@ public final class AuthorizeAclAttrProcessor extends AbstractStandardConditional
 
     private static final String VALUE_SEPARATOR = "::";
 
+    private final ApplicationContextResolver applicationContextResolver;
 
 
-    public AuthorizeAclAttrProcessor(final TemplateMode templateMode, final String dialectPrefix) {
+    public AuthorizeAclAttrProcessor(final ApplicationContextResolver applicationContextResolver,
+                    final TemplateMode templateMode, final String dialectPrefix) {
         super(templateMode, dialectPrefix, ATTR_NAME, ATTR_PRECEDENCE);
+        this.applicationContextResolver = applicationContextResolver;
     }
 
 
@@ -77,7 +81,7 @@ public final class AuthorizeAclAttrProcessor extends AbstractStandardConditional
             return false;
         }
 
-        final ApplicationContext applicationContext = AuthUtils.getContext(context);
+        final ApplicationContext applicationContext = this.applicationContextResolver.getContext(context);
 
         final IEngineConfiguration configuration = context.getConfiguration();
 

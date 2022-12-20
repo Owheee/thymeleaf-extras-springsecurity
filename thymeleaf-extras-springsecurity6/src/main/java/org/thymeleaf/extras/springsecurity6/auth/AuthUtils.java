@@ -24,14 +24,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapperImpl;
@@ -50,13 +42,18 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.access.WebInvocationPrivilegeEvaluator;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.IContext;
 import org.thymeleaf.context.IExpressionContext;
 import org.thymeleaf.exceptions.TemplateProcessingException;
 import org.thymeleaf.expression.IExpressionObjects;
 import org.thymeleaf.extras.springsecurity6.util.SpringSecurityContextUtils;
 import org.thymeleaf.extras.springsecurity6.util.SpringVersionSpecificUtils;
 import org.thymeleaf.util.Validate;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 
 
@@ -157,7 +154,7 @@ public final class AuthUtils {
 
 
     public static boolean authorizeUsingAccessExpression(
-            final IExpressionContext context,
+            final IExpressionContext context, final ApplicationContext applicationContext,
             final String accessExpression, final Authentication authentication) {
 
         Validate.notNull(context, "Context cannot be null");
@@ -170,7 +167,7 @@ public final class AuthUtils {
         final boolean authorized =
                   (SpringVersionSpecificUtils.isWebFluxContext(context))?
                           WebFluxAuthUtils.authorizeUsingAccessExpressionWebFlux(context, accessExpression, authentication) :
-                          MvcAuthUtils.authorizeUsingAccessExpressionMvc(context, accessExpression, authentication);
+                          MvcAuthUtils.authorizeUsingAccessExpressionMvc(context, applicationContext, accessExpression, authentication);
 
         if (authorized) {
 
@@ -195,16 +192,13 @@ public final class AuthUtils {
 
 
 
-    @SuppressWarnings("unchecked")
-    private static SecurityExpressionHandler<FilterInvocation> getExpressionHandler(final IExpressionContext context) {
-
-        final ApplicationContext ctx = getContext(context);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static SecurityExpressionHandler<FilterInvocation> getExpressionHandler(final ApplicationContext ctx) {
 
         final Map<String, SecurityExpressionHandler> expressionHandlers =
                 ctx.getBeansOfType(SecurityExpressionHandler.class);
 
         for (SecurityExpressionHandler handler : expressionHandlers.values()) {
-            final Class<?> clazz = GenericTypeResolver.resolveTypeArgument(handler.getClass(), SecurityExpressionHandler.class);
             if (FilterInvocation.class.equals(GenericTypeResolver.resolveTypeArgument(handler.getClass(), SecurityExpressionHandler.class))) {
                 return handler;
             }
@@ -220,8 +214,8 @@ public final class AuthUtils {
 
 
 
-    public static boolean authorizeUsingUrlCheck(
-            final IExpressionContext context, final String url, final String method, final Authentication authentication) {
+    public static boolean authorizeUsingUrlCheck(final IExpressionContext context, final ApplicationContext applicationContext,
+                    final String url, final String method, final Authentication authentication) {
 
         Validate.notNull(context, "Context cannot be null");
 
@@ -233,7 +227,7 @@ public final class AuthUtils {
         final boolean authorized =
                 (SpringVersionSpecificUtils.isWebFluxContext(context))?
                         WebFluxAuthUtils.authorizeUsingUrlCheckWebFlux(context, url, method, authentication) :
-                        MvcAuthUtils.authorizeUsingUrlCheckMvc(context, url, method, authentication);
+                        MvcAuthUtils.authorizeUsingUrlCheckMvc(context, applicationContext, url, method, authentication);
 
         if (logger.isTraceEnabled()) {
             logger.trace("[THYMELEAF][{}] Checked authorization for URL \"{}\" and method \"{}\" for user \"{}\". " +
@@ -248,7 +242,7 @@ public final class AuthUtils {
 
 
 
-    private static WebInvocationPrivilegeEvaluator getPrivilegeEvaluator(final IExpressionContext context) {
+    private static WebInvocationPrivilegeEvaluator getPrivilegeEvaluator(final IExpressionContext context, final ApplicationContext ctx) {
 
         final WebInvocationPrivilegeEvaluator privEvaluatorFromRequest =
                 (WebInvocationPrivilegeEvaluator) SpringSecurityContextUtils.getRequestAttribute(
@@ -256,8 +250,6 @@ public final class AuthUtils {
         if (privEvaluatorFromRequest != null) {
             return privEvaluatorFromRequest;
         }
-
-        final ApplicationContext ctx = getContext(context);
 
         final Map<String, WebInvocationPrivilegeEvaluator> privilegeEvaluators =
                 ctx.getBeansOfType(WebInvocationPrivilegeEvaluator.class);
@@ -273,12 +265,6 @@ public final class AuthUtils {
 
     }
 
-
-
-
-    public static ApplicationContext getContext(final IContext context) {
-        return SpringSecurityContextUtils.getApplicationContext(context);
-    }
 
 
 
@@ -305,7 +291,7 @@ public final class AuthUtils {
 
 
         private static boolean authorizeUsingAccessExpressionMvc(
-                final IExpressionContext context,
+                final IExpressionContext context, final ApplicationContext applicationContext,
                 final String accessExpression, final Authentication authentication) {
 
             /*
@@ -316,7 +302,7 @@ public final class AuthUtils {
                             accessExpression.substring(2, accessExpression.length() - 1) :
                             accessExpression);
 
-            final SecurityExpressionHandler<FilterInvocation> handler = getExpressionHandler(context);
+            final SecurityExpressionHandler<FilterInvocation> handler = getExpressionHandler(applicationContext);
 
             Expression expressionObject = null;
             try {
@@ -355,11 +341,11 @@ public final class AuthUtils {
         }
 
 
-        private static boolean authorizeUsingUrlCheckMvc(
-                final IExpressionContext context, final String url, final String method, final Authentication authentication) {
+        private static boolean authorizeUsingUrlCheckMvc(final IExpressionContext context, final ApplicationContext applicationContext,
+                        final String url, final String method, final Authentication authentication) {
 
             final String contextPath = SpringSecurityContextUtils.getContextPath(context);
-            return getPrivilegeEvaluator(context).isAllowed(contextPath, url, method, authentication);
+            return getPrivilegeEvaluator(context, applicationContext).isAllowed(contextPath, url, method, authentication);
 
         }
 

@@ -19,10 +19,12 @@
  */
 package org.thymeleaf.extras.springsecurity6.dialect.processor;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.thymeleaf.context.ITemplateContext;
 import org.thymeleaf.engine.AttributeName;
 import org.thymeleaf.extras.springsecurity6.auth.AuthUtils;
+import org.thymeleaf.extras.springsecurity6.dialect.context.ApplicationContextResolver;
 import org.thymeleaf.model.IProcessableElementTag;
 import org.thymeleaf.standard.processor.AbstractStandardConditionalVisibilityTagProcessor;
 import org.thymeleaf.templatemode.TemplateMode;
@@ -39,11 +41,13 @@ public final class AuthorizeUrlAttrProcessor extends AbstractStandardConditional
     public static final int ATTR_PRECEDENCE = 300;
     public static final String ATTR_NAME = "authorize-url";
 
+    private final ApplicationContextResolver applicationContextResolver;
 
 
-
-    public AuthorizeUrlAttrProcessor(final TemplateMode templateMode, final String dialectPrefix) {
+    public AuthorizeUrlAttrProcessor(final ApplicationContextResolver applicationContextResolver,
+                    final TemplateMode templateMode, final String dialectPrefix) {
         super(templateMode, dialectPrefix, ATTR_NAME, ATTR_PRECEDENCE);
+        this.applicationContextResolver = applicationContextResolver;
     }
 
 
@@ -71,7 +75,9 @@ public final class AuthorizeUrlAttrProcessor extends AbstractStandardConditional
             return false;
         }
 
-        return AuthUtils.authorizeUsingUrlCheck(context, url, method, authentication);
+        final ApplicationContext applicationContext = this.applicationContextResolver.getContext(context);
+
+        return AuthUtils.authorizeUsingUrlCheck(context, applicationContext, url, method, authentication);
 
     }
 

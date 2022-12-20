@@ -24,7 +24,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.web.reactive.result.view.CsrfRequestDataValueProcessor;
 import org.springframework.security.web.server.csrf.CsrfToken;
@@ -34,6 +33,8 @@ import org.thymeleaf.dialect.IExecutionAttributeDialect;
 import org.thymeleaf.dialect.IExpressionObjectDialect;
 import org.thymeleaf.dialect.IProcessorDialect;
 import org.thymeleaf.expression.IExpressionObjectFactory;
+import org.thymeleaf.extras.springsecurity6.dialect.context.ApplicationContextResolver;
+import org.thymeleaf.extras.springsecurity6.dialect.context.RootApplicationContextResolver;
 import org.thymeleaf.extras.springsecurity6.dialect.expression.SpringSecurityExpressionObjectFactory;
 import org.thymeleaf.extras.springsecurity6.dialect.processor.AuthenticationAttrProcessor;
 import org.thymeleaf.extras.springsecurity6.dialect.processor.AuthorizeAclAttrProcessor;
@@ -61,7 +62,10 @@ public class SpringSecurityDialect
     public static final int PROCESSOR_PRECEDENCE = 800;
 
 
-    private static final IExpressionObjectFactory EXPRESSION_OBJECT_FACTORY = new SpringSecurityExpressionObjectFactory();
+    private static final ApplicationContextResolver DEFAULT_APPLICATION_CONTEXT_RESOLVER =
+                    new RootApplicationContextResolver();
+    private static final IExpressionObjectFactory EXPRESSION_OBJECT_FACTORY =
+                    new SpringSecurityExpressionObjectFactory(DEFAULT_APPLICATION_CONTEXT_RESOLVER);
     private static final Map<String,Object> EXECUTION_ATTRIBUTES;
 
     // These execution attributes will force the asynchronous resolution of the SecurityContext and the CsrfToken. This
@@ -114,6 +118,8 @@ public class SpringSecurityDialect
 
     }
 
+    private ApplicationContextResolver applicationContextResolver = DEFAULT_APPLICATION_CONTEXT_RESOLVER;
+
 
 
     public SpringSecurityDialect() {
@@ -133,7 +139,13 @@ public class SpringSecurityDialect
         return PROCESSOR_PRECEDENCE;
     }
 
+    public ApplicationContextResolver getApplicationContextResolver() {
+        return applicationContextResolver;
+    }
 
+    public void setApplicationContextResolver(ApplicationContextResolver applicationContextResolver) {
+        this.applicationContextResolver = applicationContextResolver;
+    }
 
 
     public Set<IProcessor> getProcessors(final String dialectPrefix) {
@@ -150,10 +162,10 @@ public class SpringSecurityDialect
             processors.add(new AuthenticationAttrProcessor(templateMode, dialectPrefix));
             // synonym (sec:authorize = sec:authorize-expr) for similarity with
             // "authorize-url" and "autorize-acl"
-            processors.add(new AuthorizeAttrProcessor(templateMode, dialectPrefix, AuthorizeAttrProcessor.ATTR_NAME));
-            processors.add(new AuthorizeAttrProcessor(templateMode, dialectPrefix, AuthorizeAttrProcessor.ATTR_NAME_EXPR));
-            processors.add(new AuthorizeUrlAttrProcessor(templateMode, dialectPrefix));
-            processors.add(new AuthorizeAclAttrProcessor(templateMode, dialectPrefix));
+            processors.add(new AuthorizeAttrProcessor(applicationContextResolver, templateMode, dialectPrefix, AuthorizeAttrProcessor.ATTR_NAME));
+            processors.add(new AuthorizeAttrProcessor(applicationContextResolver, templateMode, dialectPrefix, AuthorizeAttrProcessor.ATTR_NAME_EXPR));
+            processors.add(new AuthorizeUrlAttrProcessor(applicationContextResolver, templateMode, dialectPrefix));
+            processors.add(new AuthorizeAclAttrProcessor(applicationContextResolver, templateMode, dialectPrefix));
             processors.add(new StandardXmlNsTagProcessor(templateMode, dialectPrefix));
 
         }

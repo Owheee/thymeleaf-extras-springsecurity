@@ -22,12 +22,12 @@ package org.thymeleaf.extras.springsecurity6.dialect.expression;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
 import org.springframework.security.core.Authentication;
 import org.thymeleaf.context.IExpressionContext;
 import org.thymeleaf.expression.IExpressionObjectFactory;
 import org.thymeleaf.extras.springsecurity6.auth.AuthUtils;
 import org.thymeleaf.extras.springsecurity6.auth.Authorization;
+import org.thymeleaf.extras.springsecurity6.dialect.context.ApplicationContextResolver;
 import org.thymeleaf.extras.springsecurity6.util.SpringVersionSpecificUtils;
 
 /**
@@ -61,14 +61,21 @@ public class SpringSecurityExpressionObjectFactory implements IExpressionObjectF
                     }
             )));
 
+    private ApplicationContextResolver applicationContextResolver;
 
 
-
-    public SpringSecurityExpressionObjectFactory() {
+    public SpringSecurityExpressionObjectFactory(final ApplicationContextResolver applicationContextResolver) {
         super();
+        this.applicationContextResolver = applicationContextResolver;
     }
 
+    public ApplicationContextResolver getApplicationContextResolver() {
+        return applicationContextResolver;
+    }
 
+    public void setApplicationContextResolver(ApplicationContextResolver applicationContextResolver) {
+        this.applicationContextResolver = applicationContextResolver;
+    }
 
 
     public Set<String> getAllExpressionObjectNames() {
@@ -99,7 +106,7 @@ public class SpringSecurityExpressionObjectFactory implements IExpressionObjectF
                 final Authentication authentication =
                         (Authentication) context.getExpressionObjects().getObject(AUTHENTICATION_EXPRESSION_OBJECT_NAME);
 
-                return new Authorization(context, authentication);
+                return new Authorization(context, applicationContextResolver.getContext(context), authentication);
 
             }
             return null;

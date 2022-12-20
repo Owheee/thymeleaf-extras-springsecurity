@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -79,7 +78,7 @@ public final class AclAuthUtils {
         final List<Permission> permissions =
                 parsePermissionsString(applicationContext, permissionsString);
 
-        return authorizeUsingAccessControlList(context, domainObject, permissions, authentication);
+        return authorizeUsingAccessControlList(context, domainObject, applicationContext, permissions, authentication);
 
     }
 
@@ -87,7 +86,8 @@ public final class AclAuthUtils {
 
     public static boolean authorizeUsingAccessControlList(
             final IExpressionContext context,
-            final Object domainObject, final List<Permission> permissions,
+            final Object domainObject,
+            final ApplicationContext applicationContext, final List<Permission> permissions,
             final Authentication authentication) {
 
 
@@ -97,8 +97,6 @@ public final class AclAuthUtils {
                     new Object[] {TemplateEngine.threadIndex(), (authentication == null? null : authentication.getName()),
                             (domainObject == null? null : domainObject.getClass().getName()), permissions});
         }
-
-        final ApplicationContext applicationContext = AuthUtils.getContext(context);
 
         final AclService aclService = getBeanOfType(applicationContext, AclService.class);
 

@@ -20,7 +20,6 @@
 package org.thymeleaf.extras.springsecurity6.auth;
 
 import java.util.List;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.core.Authentication;
@@ -38,17 +37,20 @@ public final class AclAuthorization {
 
 
     private final IExpressionContext context;
+    private final ApplicationContext applicationContext;
     private final Authentication authentication;
 
 
 
     public AclAuthorization(
             final IExpressionContext context,
+            final ApplicationContext applicationContext,
             final Authentication authentication) {
 
         super();
 
         this.context = context;
+        this.applicationContext = applicationContext;
         this.authentication = authentication;
 
     }
@@ -64,13 +66,12 @@ public final class AclAuthorization {
 
         Validate.notEmpty(permissions, "permissions cannot be null or empty");
 
-        final ApplicationContext applicationContext = AuthUtils.getContext(this.context);
 
         final List<Permission> permissionsList =
-                AclAuthUtils.parsePermissionsString(applicationContext, permissions);
+                AclAuthUtils.parsePermissionsString(this.applicationContext, permissions);
 
         return AclAuthUtils.authorizeUsingAccessControlList(
-                this.context, domainObject, permissionsList, this.authentication);
+                this.context, domainObject, this.applicationContext, permissionsList, this.authentication);
 
     }
 

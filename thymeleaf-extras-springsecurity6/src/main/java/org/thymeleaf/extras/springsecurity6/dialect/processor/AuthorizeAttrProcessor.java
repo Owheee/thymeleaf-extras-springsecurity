@@ -19,10 +19,12 @@
  */
 package org.thymeleaf.extras.springsecurity6.dialect.processor;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.thymeleaf.context.ITemplateContext;
 import org.thymeleaf.engine.AttributeName;
 import org.thymeleaf.extras.springsecurity6.auth.AuthUtils;
+import org.thymeleaf.extras.springsecurity6.dialect.context.ApplicationContextResolver;
 import org.thymeleaf.model.IProcessableElementTag;
 import org.thymeleaf.standard.processor.AbstractStandardConditionalVisibilityTagProcessor;
 import org.thymeleaf.templatemode.TemplateMode;
@@ -41,11 +43,13 @@ public final class AuthorizeAttrProcessor extends AbstractStandardConditionalVis
     public static final String ATTR_NAME = "authorize";
     public static final String ATTR_NAME_EXPR = "authorize-expr";
 
+    private final ApplicationContextResolver applicationContextResolver;
 
 
-
-    public AuthorizeAttrProcessor(final TemplateMode templateMode, final String dialectPrefix, final String attrName) {
+    public AuthorizeAttrProcessor(final ApplicationContextResolver applicationContextResolver,
+                    final TemplateMode templateMode, final String dialectPrefix, final String attrName) {
         super(templateMode, dialectPrefix, attrName, ATTR_PRECEDENCE);
+        this.applicationContextResolver = applicationContextResolver;
     }
 
 
@@ -70,7 +74,9 @@ public final class AuthorizeAttrProcessor extends AbstractStandardConditionalVis
             return false;
         }
 
-        return AuthUtils.authorizeUsingAccessExpression(context, attrValue, authentication);
+        final ApplicationContext applicationContext = this.applicationContextResolver.getContext(context);
+
+        return AuthUtils.authorizeUsingAccessExpression(context, applicationContext, attrValue, authentication);
 
     }
 

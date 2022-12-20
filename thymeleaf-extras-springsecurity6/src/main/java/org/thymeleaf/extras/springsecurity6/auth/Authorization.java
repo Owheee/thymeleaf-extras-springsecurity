@@ -19,6 +19,7 @@
  */
 package org.thymeleaf.extras.springsecurity6.auth;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.thymeleaf.context.IExpressionContext;
 import org.thymeleaf.util.Validate;
@@ -36,6 +37,7 @@ public final class Authorization {
 
 
     private final IExpressionContext context;
+    private final ApplicationContext applicationContext;
     private final Authentication authentication;
 
 
@@ -43,11 +45,13 @@ public final class Authorization {
 
     public Authorization(
             final IExpressionContext context,
+            final ApplicationContext applicationContext,
             final Authentication authentication) {
 
         super();
 
         this.context = context;
+        this.applicationContext = applicationContext;
         this.authentication = authentication;
 
     }
@@ -73,7 +77,7 @@ public final class Authorization {
 
         Validate.notEmpty(expression, "Access expression cannot be null");
 
-        return AuthUtils.authorizeUsingAccessExpression(this.context, expression, this.authentication);
+        return AuthUtils.authorizeUsingAccessExpression(this.context, this.applicationContext, expression, this.authentication);
 
     }
 
@@ -90,7 +94,7 @@ public final class Authorization {
 
         Validate.notEmpty(url, "URL cannot be null");
 
-        return AuthUtils.authorizeUsingUrlCheck(this.context, url, method, this.authentication);
+        return AuthUtils.authorizeUsingUrlCheck(this.context, this.applicationContext, url, method, this.authentication);
 
     }
 
