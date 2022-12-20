@@ -26,7 +26,7 @@
   <groupId>com.timvero.thymeleaf.extras</groupId>
   <artifactId>thymeleaf-extras-springsecurity6</artifactId>
   <packaging>jar</packaging>
-  <version>3.1.0-SNAPSHOT</version>
+  <version>3.1.0</version>
   <name>thymeleaf-extras-springsecurity6</name>
   <url>http://www.thymeleaf.org</url>
 
@@ -81,15 +81,10 @@
   </developers>
 
   <distributionManagement>
-    <snapshotRepository>
-      <id>sonatype-nexus-snapshots</id>
-      <name>Sonatype Nexus Snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
     <repository>
-      <id>sonatype-nexus-snapshots</id>
-      <name>Sonatype Nexus Snapshots</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+      <id>maven.timvero.xyz</id>
+      <name>Timvero Repository</name>
+      <url>http://maven.timvero.xyz/private</url>
     </repository>
   </distributionManagement>
 
@@ -266,21 +261,6 @@
               <appendAssemblyId>true</appendAssemblyId>
               <finalName>thymeleaf-extras-springsecurity6-${project.version}</finalName>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.6</version>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
