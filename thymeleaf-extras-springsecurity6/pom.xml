@@ -84,7 +84,7 @@
     <repository>
       <id>maven.timvero.xyz</id>
       <name>Timvero Repository</name>
-      <url>http://maven.timvero.xyz/private</url>
+      <url>https://maven.timvero.xyz/releases</url>
     </repository>
   </distributionManagement>
 
