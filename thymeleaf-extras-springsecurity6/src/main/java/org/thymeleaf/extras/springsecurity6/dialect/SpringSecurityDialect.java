@@ -64,8 +64,6 @@ public class SpringSecurityDialect
 
     private static final ApplicationContextResolver DEFAULT_APPLICATION_CONTEXT_RESOLVER =
                     new RootApplicationContextResolver();
-    private static final IExpressionObjectFactory EXPRESSION_OBJECT_FACTORY =
-                    new SpringSecurityExpressionObjectFactory(DEFAULT_APPLICATION_CONTEXT_RESOLVER);
     private static final Map<String,Object> EXECUTION_ATTRIBUTES;
 
     // These execution attributes will force the asynchronous resolution of the SecurityContext and the CsrfToken. This
@@ -120,6 +118,9 @@ public class SpringSecurityDialect
 
     private ApplicationContextResolver applicationContextResolver = DEFAULT_APPLICATION_CONTEXT_RESOLVER;
 
+    private IExpressionObjectFactory expressionObjectFactory =
+                    new SpringSecurityExpressionObjectFactory(DEFAULT_APPLICATION_CONTEXT_RESOLVER);
+
 
 
     public SpringSecurityDialect() {
@@ -137,14 +138,6 @@ public class SpringSecurityDialect
 
     public int getDialectProcessorPrecedence() {
         return PROCESSOR_PRECEDENCE;
-    }
-
-    public ApplicationContextResolver getApplicationContextResolver() {
-        return applicationContextResolver;
-    }
-
-    public void setApplicationContextResolver(ApplicationContextResolver applicationContextResolver) {
-        this.applicationContextResolver = applicationContextResolver;
     }
 
 
@@ -179,10 +172,18 @@ public class SpringSecurityDialect
 
 
     public IExpressionObjectFactory getExpressionObjectFactory() {
-        return EXPRESSION_OBJECT_FACTORY;
+        return expressionObjectFactory;
     }
 
+    public ApplicationContextResolver getApplicationContextResolver() {
+        return applicationContextResolver;
+    }
 
+    public void setApplicationContextResolver(ApplicationContextResolver applicationContextResolver) {
+        this.applicationContextResolver = applicationContextResolver;
+        this.expressionObjectFactory =
+                        new SpringSecurityExpressionObjectFactory(applicationContextResolver);
+    }
 
 
     @Override
